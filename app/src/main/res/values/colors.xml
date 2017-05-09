@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#12B7F5</color> <!--Toolbar-color-->
+    <color name="colorPrimaryDark">#12B7D1</color><!--statusBar-color-->
+    <color name="colorAccent">#5ECAF3</color><!--组件-color-->
+</resources>
