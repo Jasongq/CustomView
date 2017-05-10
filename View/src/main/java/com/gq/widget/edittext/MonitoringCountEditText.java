@@ -1,4 +1,4 @@
-package com.gq.widget;
+package com.gq.widget.edittext;
 
 import android.content.Context;
 import android.content.res.TypedArray;
@@ -9,6 +9,8 @@ import android.support.v7.widget.AppCompatEditText;
 import android.text.InputFilter;
 import android.util.AttributeSet;
 import android.util.TypedValue;
+
+import com.gq.widget.R;
 
 /**
  * 显示限制输入字数

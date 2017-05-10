@@ -21,6 +21,9 @@ import android.support.v7.widget.AppCompatImageView;
 import android.util.AttributeSet;
 import android.util.TypedValue;
 
+/**
+ * 圆形头像-
+ */
 public class CircleImageView extends AppCompatImageView {
 
     private static final ScaleType SCALE_TYPE = ScaleType.CENTER_CROP;      //只允许CENTER_CROP模式
@@ -28,7 +31,7 @@ public class CircleImageView extends AppCompatImageView {
     private static final int COLORDRAWABLE_DIMENSION = 2;   //对于 colorDrawable 的大小
 
     //以下是自定义属性
-    private int mBorderWidth = 3;            //默认边框的宽度，单位 dp
+    private int mBorderWidth = 2;            //默认边框的宽度，单位 dp
     private int mBorderColor = 0xFFFFFF00;   //默认边框的颜色
     private int mFillColor = 0x00000000;     //纯色的填充色
     private boolean mBorderOverlay = false;  //true表示边框会覆盖一部分图片，false表示边框不会覆盖在图片之上
@@ -58,10 +61,10 @@ public class CircleImageView extends AppCompatImageView {
         mBorderWidth = (int) TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, mBorderWidth, getResources().getDisplayMetrics());
 
         TypedArray a = context.obtainStyledAttributes(attrs, R.styleable.CircleImageView, defStyle, 0);
-        mBorderWidth = a.getDimensionPixelSize(R.styleable.CircleImageView_app_BorderWidth, mBorderWidth);
-        mBorderColor = a.getColor(R.styleable.CircleImageView_app_BorderColor, mBorderColor);
-        mBorderOverlay = a.getBoolean(R.styleable.CircleImageView_app_BorderOverlay, mBorderOverlay);
-        mFillColor = a.getColor(R.styleable.CircleImageView_app_FillColor, mFillColor);
+        mBorderWidth = a.getDimensionPixelSize(R.styleable.CircleImageView_borderWidth, mBorderWidth);
+        mBorderColor = a.getColor(R.styleable.CircleImageView_borderColor, mBorderColor);
+        mBorderOverlay = a.getBoolean(R.styleable.CircleImageView_borderOverlay, mBorderOverlay);
+        mFillColor = a.getColor(R.styleable.CircleImageView_fillColor, mFillColor);
         a.recycle();
 
         super.setScaleType(SCALE_TYPE);

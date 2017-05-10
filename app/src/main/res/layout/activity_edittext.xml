@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fitsSystemWindows="true">
+    <include layout="@layout/toolbar"/>
+    <com.gq.widget.edittext.MonitoringCountEditText
+        android:id="@+id/contentEt"
+        android:gravity="left"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:textColor="@color/color_gray_6"
+        android:textSize="@dimen/textSize_14"
+        android:background="@null"
+        android:minHeight="150dp"
+        android:maxHeight="200dp"
+        app:limitTextColor="@color/color_gray_6"
+        app:limitTextSize="14sp"
+        app:maxLength="300" />
+    <com.gq.widget.edittext.ClearEditText
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:drawableRight="@drawable/ic_clear"
+        android:gravity="center_vertical"
+        android:background="@null"
+        android:hint="请输入文本"
+        android:inputType="number"
+        android:singleLine="true"
+        android:textColor="@color/color_gray_3"
+        android:textColorHint="@color/color_gray_9"
+        android:textSize="@dimen/textSize_14" />
+    <com.gq.widget.edittext.PasswordEditText
+        android:layout_width="match_parent"
+        android:layout_height="40dp"
+        android:background="@null"
+        android:drawableRight="@drawable/ic_visibility_black"
+        android:gravity="center_vertical"
+        android:hint="请输入密码"
+        android:inputType="textPassword"
+        android:textColor="@color/color_gray_3"
+        android:textColorHint="@color/color_gray_9"
+        android:textSize="@dimen/textSize_16"/>
+</LinearLayout>

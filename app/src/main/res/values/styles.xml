@@ -1,8 +1,8 @@
 <resources>
 
     <!-- Base application theme. -->
-    <style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
-        <!-- Customize your theme here. -->
+    <!--<style name="AppTheme" parent="Theme.AppCompat.Light.DarkActionBar">
+        &lt;!&ndash; Customize your theme here. &ndash;&gt;
         <item name="colorPrimary">@color/colorPrimary</item>
         <item name="colorPrimaryDark">@color/colorPrimaryDark</item>
         <item name="colorAccent">@color/colorAccent</item>
@@ -11,10 +11,27 @@
     <style name="AppTheme.NoActionBar">
         <item name="windowActionBar">false</item>
         <item name="windowNoTitle">true</item>
+    </style>-->
+
+<!--
+    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" /> &lt;!&ndash;AppBarLayout的Theme&ndash;&gt;
+    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />  &lt;!&ndash;Toolbar的Theme&ndash;&gt;
+-->
+
+    <style name="AppTheme.NoActionBar" parent="Theme.AppCompat.Light.DarkActionBar">
+        <item name="windowActionBar">false</item>
+        <item name="windowNoTitle">true</item>
     </style>
+    <style name="BaseAppTheme" parent="AppTheme.NoActionBar">
+        <!-- Customize your theme here. -->
+        <item name="colorPrimary">@color/colorPrimary</item><!--toolbar导航栏背景色-->
+        <item name="colorPrimaryDark">@color/colorPrimaryDark</item><!--状态栏背景色-->
+        <item name="colorAccent">@color/colorAccent</item><!--控件颜色-->
 
-    <style name="AppTheme.AppBarOverlay" parent="ThemeOverlay.AppCompat.Dark.ActionBar" />
-
-    <style name="AppTheme.PopupOverlay" parent="ThemeOverlay.AppCompat.Light" />
+        <item name="android:windowBackground">@color/windowBackground</item><!--activity背景色-->
+        <item name="android:textColorHint">@color/themeTextInputLayout_color</item>
+        <item name="android:textColorPrimary">@color/primary_text</item><!--正常状态下字体颜色和icon颜色-->
+    </style>
+    <style name="AppTheme" parent="BaseAppTheme" />
 
 </resources>

@@ -1,19 +1,38 @@
 package com.gq.usage;
 
 import android.os.Bundle;
+import android.support.annotation.NonNull;
+import android.support.design.widget.BottomNavigationView;
 import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
-import android.view.View;
 import android.support.design.widget.NavigationView;
+import android.support.design.widget.Snackbar;
 import android.support.v4.view.GravityCompat;
+import android.support.v4.view.ViewPager;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+
+import com.gq.usage.adapter.HomePageAdapter;
+import com.gq.usage.fragment.FourFragment;
+import com.gq.usage.fragment.OneFragment;
+import com.gq.usage.fragment.SecondFragment;
+import com.gq.usage.fragment.ThreeFragment;
+
+import butterknife.BindView;
+import butterknife.ButterKnife;
 
 public class MainActivity extends AppCompatActivity implements NavigationView.OnNavigationItemSelectedListener {
+
+    @BindView(R.id.viewpager)
+    ViewPager viewpager;
+    @BindView(R.id.bottom_navigation)
+    BottomNavigationView bottomNavigation;
+    private MenuItem menuItem;
+    private HomePageAdapter adapter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -21,6 +40,8 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         setContentView(R.layout.activity_main);
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+        ButterKnife.bind(this);
+        initView();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -39,6 +60,74 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
 
         NavigationView navigationView = (NavigationView) findViewById(R.id.nav_view);
         navigationView.setNavigationItemSelectedListener(this);
+    }
+
+    private void initView() {
+        //默认 >3 的选中效果会影响ViewPager的滑动切换时的效果，故利用反射去掉
+        BottomNavigationViewHelper.disableShiftMode(bottomNavigation);
+        bottomNavigation.setOnNavigationItemSelectedListener(OnNavigationItemSelectedListener);
+        viewpager.addOnPageChangeListener(OnPageChangeListener);
+        //禁止ViewPager滑动
+        /*viewpager.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                return true;
+            }
+        });*/
+        setupViewPager(viewpager);
+    }
+
+    private BottomNavigationView.OnNavigationItemSelectedListener OnNavigationItemSelectedListener=new BottomNavigationView.OnNavigationItemSelectedListener() {
+        @Override
+        public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+            switch (item.getItemId()){
+                case R.id.item_news:
+                    viewpager.setCurrentItem(0);
+                    break;
+                case R.id.item_contact:
+                    viewpager.setCurrentItem(1);
+                    break;
+                case R.id.item_found:
+                    viewpager.setCurrentItem(2);
+                    break;
+                case R.id.item_more:
+                    viewpager.setCurrentItem(3);
+                    break;
+            }
+            return false;
+        }
+    };
+
+    private ViewPager.OnPageChangeListener OnPageChangeListener=new ViewPager.OnPageChangeListener() {
+        @Override
+        public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+
+        }
+
+        @Override
+        public void onPageSelected(int position) {
+            if (menuItem!=null){
+                menuItem.setChecked(false);
+            }else {
+                bottomNavigation.getMenu().getItem(0).setChecked(false);
+            }
+            menuItem=bottomNavigation.getMenu().getItem(position);
+            menuItem.setChecked(true);
+        }
+
+        @Override
+        public void onPageScrollStateChanged(int state) {
+
+        }
+    };
+    private void setupViewPager(ViewPager viewPager) {
+        adapter = new HomePageAdapter(getSupportFragmentManager());
+
+        adapter.addFragment(OneFragment.newInstance("消息"));
+        adapter.addFragment(SecondFragment.newInstance("联系人"));
+        adapter.addFragment(ThreeFragment.newInstance("发现"));
+        adapter.addFragment(FourFragment.newInstance("更多"));
+        viewPager.setAdapter(adapter);
     }
 
     @Override
@@ -69,7 +158,6 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         if (id == R.id.action_settings) {
             return true;
         }
-
         return super.onOptionsItemSelected(item);
     }
 

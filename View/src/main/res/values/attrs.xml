@@ -61,12 +61,12 @@
             <flag name="end" value="0x00800005"/>
         </attr>
     </declare-styleable>
-    <!--圆形图片-->
+    <!--圆形头像-->
     <declare-styleable name="CircleImageView">
-        <attr name="app_BorderWidth" format="dimension"/>
-        <attr name="app_BorderColor" format="color"/>
-        <attr name="app_FillColor" format="color"/>
-        <attr name="app_BorderOverlay" format="boolean"/>
+        <attr name="borderWidth" format="dimension"/>
+        <attr name="borderColor" format="color"/>
+        <attr name="borderOverlay" format="boolean"/>
+        <attr name="fillColor" format="color"/>
     </declare-styleable>
     <!--实时计数EditText-->
     <declare-styleable name="MonitoringCountEditText">
