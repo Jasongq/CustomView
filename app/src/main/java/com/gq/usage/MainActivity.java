@@ -82,16 +82,16 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         public boolean onNavigationItemSelected(@NonNull MenuItem item) {
             switch (item.getItemId()){
                 case R.id.item_news:
-                    viewpager.setCurrentItem(0);
+                    viewpager.setCurrentItem(0,false);
                     break;
                 case R.id.item_contact:
-                    viewpager.setCurrentItem(1);
+                    viewpager.setCurrentItem(1,false);
                     break;
                 case R.id.item_found:
-                    viewpager.setCurrentItem(2);
+                    viewpager.setCurrentItem(2,false);
                     break;
                 case R.id.item_more:
-                    viewpager.setCurrentItem(3);
+                    viewpager.setCurrentItem(3,false);
                     break;
             }
             return false;
@@ -128,6 +128,7 @@ public class MainActivity extends AppCompatActivity implements NavigationView.On
         adapter.addFragment(ThreeFragment.newInstance("发现"));
         adapter.addFragment(FourFragment.newInstance("更多"));
         viewPager.setAdapter(adapter);
+        viewPager.setOffscreenPageLimit(4);
     }
 
     @Override

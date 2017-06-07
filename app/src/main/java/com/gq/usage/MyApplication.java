@@ -33,6 +33,7 @@ public class MyApplication extends Application {
         mContext = getApplicationContext();
         instance = this;
         allActivityList = new ArrayList<>();
+
     }
     //---------------
     public void addActivity(Activity activity) {

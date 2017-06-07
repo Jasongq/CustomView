@@ -1,3 +1,18 @@
+/*
+ * Copyright (C) 2013 Leszek Mzyk
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
 package com.gq.widget.loop;
 
 import android.content.Context;
@@ -9,10 +24,12 @@ import android.os.Parcelable;
 import android.support.v4.view.PagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
+import android.view.MotionEvent;
 
 import com.gq.widget.R;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * 需要实现循环滚动的时候，不需要改动代码，只需要把xml的节点换成LoopViewPager就可以了
@@ -24,29 +41,28 @@ import java.util.ArrayList;
  * modified     InnerddPosition [4,1,2,3,4,1]
  */
 public class LoopViewPager extends ViewPager {
+    private static final boolean DEFAULT_BOUNDARY_CASHING = false;
+    private static final boolean DEFAULT_BOUNDARY_LOOPING = true;
 
-    private PagerAdapter mAdapter;   //原始的Adapter
-    private LoopAdapterWrapper mLoopAdapter;    //实现了循环滚动的Adapter
-
-    private OnPageChangeListener loopPageChangeListener;  //内部定义的监听器
-    private OnPageChangeListener mOnPageChangeListener;   //外部通过set传进来的
-    private ArrayList<OnPageChangeListener> mOnPageChangeListeners;   //外部通过add传进来的
+    private LoopPagerAdapterWrapper mAdapter;//实现了循环滚动的Adapter
+    private boolean mBoundaryCaching = DEFAULT_BOUNDARY_CASHING;
+    private boolean mBoundaryLooping = DEFAULT_BOUNDARY_LOOPING;
+    private List<OnPageChangeListener> mOnPageChangeListeners;
 
     private Handler mHandler;  //处理轮播的Handler
     private boolean mIsAutoLoop = true;  //是否自动轮播
-    private int mDelayTime = 3000; //轮播的延时时间
+    private int mDelayTime = 5000; //轮播的延时时间
     private boolean isDetached;    //是否被回收过
     private int currentPosition;   //当前的条目位置
 
     public LoopViewPager(Context context) {
-        this(context, null);
+        super(context);
+        init(context);
     }
 
     public LoopViewPager(Context context, AttributeSet attrs) {
         super(context, attrs);
-        loopPageChangeListener = new MyOnPageChangeListener();
-        super.addOnPageChangeListener(loopPageChangeListener);
-
+        init(context);
         TypedArray a = getResources().obtainAttributes(attrs, R.styleable.LoopViewPager);
         mIsAutoLoop = a.getBoolean(R.styleable.LoopViewPager_lvp_isAutoLoop, mIsAutoLoop);
         mDelayTime = a.getInteger(R.styleable.LoopViewPager_lvp_delayTime, mDelayTime);
@@ -55,12 +71,18 @@ public class LoopViewPager extends ViewPager {
         setAutoLoop(mIsAutoLoop, mDelayTime);
     }
 
+    private void init(Context context) {
+        if (onPageChangeListener != null) {
+            super.removeOnPageChangeListener(onPageChangeListener);
+        }
+        super.addOnPageChangeListener(onPageChangeListener);
+    }
     @Override
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         if (isDetached) {
-            if (loopPageChangeListener != null) {
-                super.addOnPageChangeListener(loopPageChangeListener);
+            if (onPageChangeListener != null) {
+                super.addOnPageChangeListener(onPageChangeListener);
             }
             if (mHandler != null) {
                 mHandler.removeCallbacksAndMessages(null);
@@ -73,15 +95,14 @@ public class LoopViewPager extends ViewPager {
     @Override
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
-        if (loopPageChangeListener != null) {
-            super.removeOnPageChangeListener(loopPageChangeListener);
+        if (onPageChangeListener != null) {
+            super.removeOnPageChangeListener(onPageChangeListener);
         }
         if (mHandler != null) {
             mHandler.removeCallbacksAndMessages(null);
         }
         isDetached = true;
     }
-
     @Override
     public Parcelable onSaveInstanceState() {
         Bundle bundle = new Bundle();
@@ -102,11 +123,45 @@ public class LoopViewPager extends ViewPager {
         setCurrentItem(currentPosition);
     }
 
+    /**
+     * helper function which may be used when implementing FragmentPagerAdapter
+     * @return (position-1)%count
+     */
+    public static int toRealPosition(int position, int count) {
+        position = position - 1;
+        if (position < 0) {
+            position += count;
+        } else {
+            position = position % count;
+        }
+        return position;
+    }
+
+    /**
+     * If set to true, the boundary views (i.e. first and last) will never be
+     * destroyed This may help to prevent "blinking" of some views
+     * 如果设置为真,则边界的观点(即第一个和最后一个)永远不会摧毁这可能有助于防止“闪烁”的一些看法
+     */
+    public void setBoundaryCaching(boolean flag) {
+        mBoundaryCaching = flag;
+        if (mAdapter != null) {
+            mAdapter.setBoundaryCaching(flag);
+        }
+    }
+
+    public void setBoundaryLooping(boolean flag) {
+        mBoundaryLooping = flag;
+        if (mAdapter != null) {
+            mAdapter.setBoundaryLooping(flag);
+        }
+    }
+
     @Override
     public void setAdapter(PagerAdapter adapter) {
-        mAdapter = adapter;
-        mLoopAdapter = new LoopAdapterWrapper(adapter);
-        super.setAdapter(mLoopAdapter);
+        mAdapter = new LoopPagerAdapterWrapper(adapter);
+        mAdapter.setBoundaryCaching(mBoundaryCaching);
+        mAdapter.setBoundaryLooping(mBoundaryLooping);
+        super.setAdapter(mAdapter);
         setCurrentItem(0, false);
     }
 
@@ -115,12 +170,16 @@ public class LoopViewPager extends ViewPager {
      */
     @Override
     public PagerAdapter getAdapter() {
-        return mAdapter;
+        return mAdapter != null ? mAdapter.getRealAdapter() : mAdapter;
     }
 
     @Override
+    public int getCurrentItem() {
+        return mAdapter != null ? mAdapter.toRealPosition(super.getCurrentItem()) : 0;
+    }
+
     public void setCurrentItem(int item, boolean smoothScroll) {
-        int realItem = mLoopAdapter == null ? 0 : mLoopAdapter.getInnerPosition(item);
+        int realItem = mAdapter == null ? 0 : mAdapter.toInnerPosition(item);
         super.setCurrentItem(realItem, smoothScroll);
     }
 
@@ -132,14 +191,8 @@ public class LoopViewPager extends ViewPager {
     }
 
     @Override
-    public int getCurrentItem() {
-        return mLoopAdapter == null ? 0 : mLoopAdapter.toRealPosition(super.getCurrentItem());
-    }
-
-    @SuppressWarnings("deprecation")
-    @Override
     public void setOnPageChangeListener(OnPageChangeListener listener) {
-        mOnPageChangeListener = listener;
+        addOnPageChangeListener(listener);
     }
 
     @Override
@@ -157,22 +210,34 @@ public class LoopViewPager extends ViewPager {
         }
     }
 
-    private class MyOnPageChangeListener implements OnPageChangeListener {
+    @Override
+    public void clearOnPageChangeListeners() {
+        if (mOnPageChangeListeners != null) {
+            mOnPageChangeListeners.clear();
+        }
+    }
+
+
+
+    private OnPageChangeListener onPageChangeListener = new OnPageChangeListener() {
+        private float mPreviousOffset = -1;
+        private float mPreviousPosition = -1;
 
         @Override
         public void onPageSelected(int position) {
-            int realPosition = mLoopAdapter == null ? 0 : mLoopAdapter.toRealPosition(position);
-            currentPosition = realPosition;
 
+            int realPosition = mAdapter.toRealPosition(position);
+            currentPosition = realPosition;
             //分发事件给外部传进来的监听
-            if (mOnPageChangeListener != null) {
-                mOnPageChangeListener.onPageSelected(realPosition);
-            }
-            if (mOnPageChangeListeners != null) {
-                for (int i = 0, z = mOnPageChangeListeners.size(); i < z; i++) {
-                    OnPageChangeListener listener = mOnPageChangeListeners.get(i);
-                    if (listener != null) {
-                        listener.onPageSelected(realPosition);
+            if (mPreviousPosition != realPosition) {
+                mPreviousPosition = realPosition;
+
+                if (mOnPageChangeListeners != null) {
+                    for (int i = 0; i < mOnPageChangeListeners.size(); i++) {
+                        OnPageChangeListener listener = mOnPageChangeListeners.get(i);
+                        if (listener != null) {
+                            listener.onPageSelected(realPosition);
+                        }
                     }
                 }
             }
@@ -180,40 +245,57 @@ public class LoopViewPager extends ViewPager {
 
         @Override
         public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-            int realPosition = mLoopAdapter == null ? 0 : mLoopAdapter.toRealPosition(position);
+            int realPosition = position;
+            if (mAdapter != null) {
+                realPosition = mAdapter.toRealPosition(position);
 
-            //分发事件给外部传进来的监听
-            if (mOnPageChangeListener != null) {
-                mOnPageChangeListener.onPageScrolled(realPosition, positionOffset, positionOffsetPixels);
+                if (positionOffset == 0 && mPreviousOffset == 0 && (position == 0
+                        || position == mAdapter.getCount() - 1)) {
+                    setCurrentItem(realPosition, false);
+                }
             }
+
+            mPreviousOffset = positionOffset;
+
             if (mOnPageChangeListeners != null) {
-                for (int i = 0, z = mOnPageChangeListeners.size(); i < z; i++) {
+                for (int i = 0; i < mOnPageChangeListeners.size(); i++) {
                     OnPageChangeListener listener = mOnPageChangeListeners.get(i);
                     if (listener != null) {
-                        listener.onPageScrolled(realPosition, positionOffset, positionOffsetPixels);
+                        if (realPosition != mAdapter.getRealCount() - 1) {
+                            listener.onPageScrolled(realPosition, positionOffset,
+                                    positionOffsetPixels);
+                        } else {
+                            if (positionOffset > .5) {
+                                listener.onPageScrolled(0, 0, 0);
+                            } else {
+                                listener.onPageScrolled(realPosition, 0, 0);
+                            }
+                        }
                     }
                 }
             }
         }
-
+        /**
+         * state == ViewPager.SCROLL_STATE_DRAGGING  //正在滑动   pager处于正在拖拽中
+         * state == ViewPager.SCROLL_STATE_SETTLING   //pager正在自动沉降，相当于松手后，pager恢复到一个完整pager的过程
+         * state == ViewPager.SCROLL_STATE_IDLE  //空闲状态  pager处于空闲状态
+         * @param state
+         */
         @Override
         public void onPageScrollStateChanged(int state) {
             //当滑动到了第一页 或者 最后一页的时候，跳转到指定的对应页
             //不能在onPageSelected中写这段逻辑，因为onPageSelected当松手的时候，就调用了
             //不是在滑动结束后再调用
-            int position = LoopViewPager.super.getCurrentItem();
-            int realPosition = mLoopAdapter == null ? 0 : mLoopAdapter.toRealPosition(position);
-            int count = mLoopAdapter == null ? 0 : mLoopAdapter.getCount();
-            if (state == ViewPager.SCROLL_STATE_IDLE && (position == 0 || position == count - 1)) {
-                setCurrentItem(realPosition, false);
+            if (mAdapter != null) {
+                int position = LoopViewPager.super.getCurrentItem();
+                int realPosition = mAdapter.toRealPosition(position);
+                if (state == ViewPager.SCROLL_STATE_IDLE && (position == 0 || position == mAdapter.getCount() - 1)) {
+                    setCurrentItem(realPosition, false);
+                }
             }
-
             //分发事件给外部传进来的监听
-            if (mOnPageChangeListener != null) {
-                mOnPageChangeListener.onPageScrollStateChanged(state);
-            }
             if (mOnPageChangeListeners != null) {
-                for (int i = 0, z = mOnPageChangeListeners.size(); i < z; i++) {
+                for (int i = 0; i < mOnPageChangeListeners.size(); i++) {
                     OnPageChangeListener listener = mOnPageChangeListeners.get(i);
                     if (listener != null) {
                         listener.onPageScrollStateChanged(state);
@@ -221,7 +303,7 @@ public class LoopViewPager extends ViewPager {
                 }
             }
         }
-    }
+    };
 
     /**
      * 设置是否自动轮播  delayTime延时的毫秒
@@ -255,4 +337,30 @@ public class LoopViewPager extends ViewPager {
             sendEmptyMessageDelayed(0, mDelayTime);
         }
     }
+    /**
+     * 手指按下时 不自动轮播
+     */
+    @Override
+    public boolean onTouchEvent(MotionEvent ev) {
+        if (ev.getAction()== MotionEvent.ACTION_DOWN||ev.getAction()==MotionEvent.ACTION_POINTER_DOWN){//
+            setAutoLoop(false,mDelayTime);
+        }else if (ev.getAction()==MotionEvent.ACTION_UP){
+            if (mIsAutoLoop) {
+                if (mHandler == null) {
+                    mHandler = new InnerHandler();
+                    mHandler.sendEmptyMessageDelayed(0, mDelayTime);
+                } else {
+                    mHandler.removeCallbacksAndMessages(null);
+                    mHandler.sendEmptyMessageDelayed(0, mDelayTime);
+                }
+            }else {
+                if (mHandler != null) {
+                    mHandler.removeCallbacksAndMessages(null);
+                    mHandler = null;
+                }
+            }
+        }
+        return super.onTouchEvent(ev);
+    }
+
 }

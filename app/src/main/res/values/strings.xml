@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">通讯</string>
+    <string name="app_name">test</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -10,4 +10,7 @@
     <string name="tab_contact">联系人</string>
     <string name="tab_found">发现</string>
     <string name="tab_more">更多</string>
+
+    <string name="sdcard_no_exist">SD卡不存在</string>
+    <string name="camera_not_prepared">摄像头尚未准备好</string>
 </resources>
